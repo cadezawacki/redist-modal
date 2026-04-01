@@ -1,7 +1,3 @@
-
-
-
-
 // pt/js/widgets/pivotWidget.js
 
 import {BaseWidget} from './baseWidget.js';
@@ -687,18 +683,28 @@ export class PivotWidget extends BaseWidget {
         }
 
         // -- Formatters ------------------------------------------------------
-        const fmtNum = (v, decimals = 4, signed = false) => {
+        const fmtNum = (v, decimals = 4, signed = false, percent=false) => {
             if (v == null || v === '' || !Number.isFinite(+v)) return '-';
-            const r = (+v).toLocaleString(undefined, {minimumFractionDigits: decimals, maximumFractionDigits: decimals});
-            return signed ? (Number(v) > 0 ? '+' : '') + r : r;
+            if (percent && Number(v) === 0) return '-';
+            let r = (+v).toLocaleString(undefined, {minimumFractionDigits: decimals, maximumFractionDigits: decimals});
+            r = signed ? (Number(v) > 0 ? '+' : '') + r : r;
+            if (percent) r += '%';
+            return r
         };
 
-        const fmtK = (v) => {
+        const fmtK = (v, signed=false, prefix="", suffix="") => {
             if (v == null || !Number.isFinite(+v)) return '-';
             const n = +v;
-            if (Math.abs(n) >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'm';
-            if (Math.abs(n) >= 1_000) return (n / 1_000).toFixed(0) + 'k';
-            return n.toFixed(0);
+            let r = ''
+            if (Math.abs(n) >= 1_000_000) r= (n / 1_000_000).toFixed(1) + 'm';
+            else if (Math.abs(n) >= 1_000) r = (n / 1_000).toFixed(0) + 'k';
+            else  r = (n / 1_000).toFixed(1) + 'k';
+            let base = '<div class="fmtk-wrapper">';
+            if (prefix && prefix !== '') base += `<span>${prefix}</span>`;
+            base += `<span>${(signed && n>0 ? '+' : "") + r}</span>`
+            if (suffix && suffix !== '') base += `<span>${suffix}</span>`
+            base += `</div>`;
+            return base
         };
 
         // -- Delta colour helper (same sign convention as original) ----------
@@ -800,15 +806,16 @@ export class PivotWidget extends BaseWidget {
             {key: 'quoteType', label: 'QT', tip: ''},
             {key: 'size', label: 'Size', tip: '', fmt: v => fmtK(v)},
             {key: 'dv01', label: 'DV01', tip: '', fmt: v => fmtK(v)},
-            {key: 'risk_pct', label: 'Risk %', tip: '', fmt: v => fmtNum(v * 100, 0, false) + '%'},
+            {key: 'risk_pct', label: 'Risk', tip: '% Share', fmt: v => fmtNum(v * 100, 0, false, true)},
             {key: 'wavg_liq_score', label: 'Liq', tip: '', fmt: v => fmtNum(v, 1, false)},
-            {key: 'pct_bsr', label: '% BSR', tip: '', fmt: v => fmtNum(v * 100, 0, false) + '%'},
+            {key: 'pct_bsr', label: '% BSR', tip: '', fmt: v => fmtNum(v * 100, 0, false, true)},
             {key: 'wavg_start_skew', label: 'Start', tip: 'Skew', fmt: v => fmtNum(v, 2, true)},
             {key: 'wavg_bucket_effect', label: 'Bucket', tip: 'Effect', fmt: v => fmtNum(v, 2, true), isDelta: true},
             {key: 'wavg_trader_effect', label: 'Group', tip: 'Effect', fmt: v => fmtNum(v, 2, true), isDelta: true},
             // {key: 'wavg_slack_effect', label: 'Slack', tip: 'Effect', fmt: v => fmtNum(v, 2, true), isDelta: true},
             {key: 'wavg_final_skew', label: 'Final', tip: 'Skew', fmt: v => fmtNum(v, 2, true), highlight: true},
             {key: 'wavg_skew_delta', label: 'Wavg Δ', tip: 'Delta', fmt: v => fmtNum(v, 2, true), isDelta: true},
+            {key: 'proceeds_delta', label: 'PNL Δ', tip: 'Delta', fmt: v => fmtK(v, true, "$"), isDelta: true},
         ];
 
         // Header row
@@ -837,15 +844,16 @@ export class PivotWidget extends BaseWidget {
             // {key: 'quoteType', label: '', tip: '', fmt: v => ''}, //gap
             {key: 'grossSize', label: 'Size', tip: '', fmt: v => fmtK(v)},
             {key: 'grossDv01', label: 'DV01', tip: '', fmt: v => fmtK(v)},
-            {key: 'risk_pct', label: 'Risk %', tip: '', fmt: v => fmtNum(v * 100, 0, false) + '%'},
+            {key: 'risk_pct', label: 'Risk', tip: '% Share', fmt: v => fmtNum(v * 100, 1, false, true)},
             {key: 'avgLiqScore', label: 'Liq', tip: '', fmt: v => fmtNum(v, 1), className: (v) => `liq-td liq-${v.toFixed(0)}`},
-            {key: 'bsr_pct', label: '% BSR', tip: '', fmt: v => fmtNum(v * 100, 0, false) + '%'},
+            {key: 'bsr_pct', label: '% BSR', tip: '', fmt: v => fmtNum(v * 100, 0, false, true)},
             {key: 'skew', label: 'Start', tip: 'Skew', fmt: v => fmtNum(v, 2, true)},
             {key: 'bucket_effect', label: 'Bucket', tip: 'Effect', fmt: v => fmtNum(v, 2, false), isDelta: true},
             {key: 'group_effect', label: 'Group', tip: 'Effect', fmt: v => fmtNum(v, 2, false), isDelta: true},
             // {key: 'slack_effect', label: 'Slack', tip: 'Effect', fmt: v => fmtNum(v, 2, true), isDelta: true},
             {key: 'final_skew', label: 'Final', tip: 'Skew', fmt: v => fmtNum(v, 2, true), highlight: true},
-            {key: 'skew_delta', label: 'Δ Delta', tip: 'Skew', fmt: v => fmtNum(v, 2, true), isDelta: true},
+            {key: 'skew_delta', label: 'Delta Δ', tip: 'Skew', fmt: v => fmtNum(v, 2, true), isDelta: true},
+            {key: 'proceeds_delta', label: 'PNL Δ', tip: 'Delta', fmt: v => fmtK(v, true, "$"), isDelta: true},
             // {key: 'proceeds_delta',   label: 'Δ Proceeds',    tip: '',       fmt: v => fmtK(v), isDelta: true},
         ];
 
