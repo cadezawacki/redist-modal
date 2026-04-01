@@ -1733,9 +1733,9 @@ table.redist-summary-table tbody td:nth-child(2).td-buy {
     width: 100%;
 }
 
-.redist-modal-body {
+.rdm-scroll-region {
     overflow-y: auto;
-    max-height: 70vh;
+    max-height: 60vh;
 }
 
 .rdm-summary-table thead th {

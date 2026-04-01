@@ -982,7 +982,9 @@ export class PivotWidget extends BaseWidget {
             <div id="${staleId}" style="display:none;">
                 WARNING STALE : Portfolio data has changed since this was computed. Re-run recommended.
             </div>
-            ${groupTablesHtml}
+            <div class="rdm-scroll-region">
+                ${groupTablesHtml}
+            </div>
         </div>
         <div class="rdm-legend">
             <span class="rdm-legend-entry rdm-legend-bucket">
