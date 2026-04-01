@@ -1653,8 +1653,11 @@ table.redist-summary-table tbody td:nth-child(2).td-buy {
     background: var(--orange-700, #c2410c);
     border-bottom-color: var(--orange-600, #ea580c);
 }
-.rdm-theme-px .rdm-summary-row.rdm-stripe-odd {
+.rdm-theme-px .rdm-summary-row.rdm-stripe-even {
     background-color: var(--white-200);
+}
+.rdm-theme-px .rdm-summary-row.rdm-stripe-odd {
+    background-color: var(--orange-200, #fed7aa);
 }
 .rdm-theme-px .rdm-summary-row:hover {
     outline-color: color-mix(in srgb, var(--orange-500, #f97316) 70%, transparent);
@@ -1676,8 +1679,11 @@ table.redist-summary-table tbody td:nth-child(2).td-buy {
     background: var(--teal-700);
     border-bottom-color: var(--teal-600);
 }
-.rdm-theme-spd .rdm-summary-row.rdm-stripe-odd {
+.rdm-theme-spd .rdm-summary-row.rdm-stripe-even {
     background-color: var(--white-200);
+}
+.rdm-theme-spd .rdm-summary-row.rdm-stripe-odd {
+    background-color: var(--teal-200);
 }
 .rdm-theme-spd .rdm-summary-row:hover {
     outline-color: color-mix(in srgb, var(--teal-500) 70%, transparent);
@@ -1724,8 +1730,12 @@ table.redist-summary-table tbody td:nth-child(2).td-buy {
 }
 
 .rdm-table-wrapper {
-    overflow-y: auto;
     width: 100%;
+}
+
+.redist-modal-body {
+    overflow-y: auto;
+    max-height: 70vh;
 }
 
 .rdm-summary-table thead th {
@@ -1844,6 +1854,7 @@ table.redist-summary-table tbody td:nth-child(2).td-buy {
     box-shadow: 0 2px 10px 8px rgba(0,0,0,0.05);
     height: 120%;
     font-variant: tabular-nums;
+    table-layout: fixed;
 }
 
 .rdm-bond-table thead th {
