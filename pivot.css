@@ -1,4 +1,3 @@
-
 @import 'ag-grid-community/styles/ag-grid.css';
 @import 'ag-grid-community/styles/ag-theme-alpine.css';
 @import '@/global/css/grid.css';
@@ -1205,8 +1204,8 @@ hr {
 
 
 .pt-redistribute-modal {
-    width: 65vw;
-    max-width: 65vw;
+    width: 1050px;
+    max-width: 1050px;
     overflow: hidden;
 }
 
@@ -1809,7 +1808,7 @@ tr.rdm-summary-row:nth-child(55){
 
 table.rdm-bond-table tbody td:first-child,
 table.rdm-bond-table thead th:first-child {
-    width:29% !important;
+    width:26% !important;
 }
 
 table.rdm-bond-table tbody td:nth-child(11),
@@ -1828,6 +1827,18 @@ table.rdm-bond-table thead th:nth-child(11){
 /*.rdm-summary-table td:nth-child(2) {*/
 /*  width: 120px;*/
 /*}*/
+
+.rdm-summary-table th:nth-child(15),
+.rdm-summary-table td:nth-child(15) {
+    width: 70px;
+    padding-left:10px;
+}
+
+.rdm-summary-table td:nth-child(15) div{
+    display: flex;
+    justify-content: space-between;
+    width:100%;
+}
 
 .rdm-summary-table thead th:nth-child(10),
 .rdm-summary-table tbody td:nth-child(10){
@@ -1861,6 +1872,7 @@ table.rdm-bond-table thead th:nth-child(11){
     background:var(--teal-600) !important;
 }
 
+.rdm-summary-table thead th:nth-child(15),
 .rdm-summary-table thead th:nth-child(14){
     background:var(--teal-500) !important;
     border-color: var(--teal-500) !important;
@@ -1889,17 +1901,18 @@ table.rdm-bond-table thead th:nth-child(11){
     border-left: 1px solid var(--indigo-400);
 }
 
+.rdm-summary-table :not(.rdm-detail-inner) thead th:nth-child(11),
 .rdm-summary-table :not(.rdm-detail-inner) thead th:last-child {
     background:var(--indigo-400) !important;
 }
 
-.rdm-summary-table td:nth-child(10),
 .rdm-summary-table td:nth-child(11),
-.rdm-summary-table td:nth-child(12) {
+.rdm-summary-table td:nth-child(12),
+.rdm-summary-table td:nth-child(13) {
   font-weight: 500 !important;
 }
 
-.rdm-summary-table td:nth-child(9),
+.rdm-summary-table td:nth-child(10),
 .rdm-summary-table td:nth-child(13) {
   font-weight: 700 !important;
 }
@@ -2271,4 +2284,9 @@ table.rdm-bond-table thead th:nth-child(11){
 .rdm-bucket-apply-btn:active {
     background:var(--teal-700);
     transform: scale(0.98);
+}
+
+.fmtk-wrapper {
+    display: flex;
+    justify-content: space-between;
 }
