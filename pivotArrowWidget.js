@@ -938,8 +938,35 @@ export class PivotWidget extends BaseWidget {
             })
             return bodyRowsHtml;
         };
-        let bodyRowsHtml = buildTraderRows(trader);
+        // -- Group trader rows by quoteType/side for separate tables -----------
+        const qtSideGroups = new Map();
+        trader.forEach(row => {
+            const key = `${row.quoteType}|${row.side}`;
+            if (!qtSideGroups.has(key)) qtSideGroups.set(key, []);
+            qtSideGroups.get(key).push(row);
+        });
 
+        const buildGroupTable = (groupKey, rows, idx) => {
+            const [qt, side] = groupKey.split('|');
+            const themeClass = qt === 'PX' ? 'rdm-theme-px' : 'rdm-theme-spd';
+            const tbodyId = `rdm-tbody-${idx}`;
+            const groupRows = buildTraderRows(rows);
+            return `<div class="rdm-group-section ${themeClass}">
+                <div class="rdm-group-label">${esc(qt)} / ${esc(side)}</div>
+                <div class="rdm-table-wrapper">
+                    <table class="rdm-summary-table" style="width:100%;border-collapse:collapse;">
+                        <thead><tr>${headerRow}</tr></thead>
+                        <tbody class="rdm-tbody" data-tbody-idx="${idx}">${groupRows}</tbody>
+                    </table>
+                </div>
+            </div>`;
+        };
+
+        let groupTablesHtml = '';
+        let groupIdx = 0;
+        for (const [key, rows] of qtSideGroups) {
+            groupTablesHtml += buildGroupTable(key, rows, groupIdx++);
+        }
 
 
         // ----------------------------------------------------------------------
@@ -952,12 +979,7 @@ export class PivotWidget extends BaseWidget {
             <div id="${staleId}" style="display:none;">
                 WARNING STALE : Portfolio data has changed since this was computed. Re-run recommended.
             </div>
-            <div class="rdm-table-wrapper">
-                <table class="rdm-summary-table" style="width:100%;border-collapse:collapse;">
-                    <thead><tr style="text-align:left;">${headerRow}</tr></thead>
-                    <tbody id="rdm-tbody">${bodyRowsHtml}</tbody>
-                </table>
-            </div>
+            ${groupTablesHtml}
         </div>
         <div class="rdm-legend">
             <span class="rdm-legend-entry rdm-legend-bucket">
@@ -1016,8 +1038,8 @@ export class PivotWidget extends BaseWidget {
 
         // -- Attach row-expansion logic after DOM render ---------------------
         requestAnimationFrame(() => {
-            const tbody = document.getElementById('rdm-tbody');
-            if (!tbody) return;
+            const allTbodies = document.querySelectorAll('.rdm-tbody');
+            if (!allTbodies.length) return;
 
             // FIFO expansion queue - max 2
             const expandedQueue = []; // array of {rowEl, detailEl}
@@ -1034,41 +1056,49 @@ export class PivotWidget extends BaseWidget {
                 entry.detailEl.classList.add('rdm-open');
             };
 
-            tbody.addEventListener('click', (e) => {
-                const summaryRow = e.target.closest('.rdm-summary-row');
-                if (!summaryRow) return;
+            allTbodies.forEach(tbody => {
+                tbody.addEventListener('click', (e) => {
+                    const summaryRow = e.target.closest('.rdm-summary-row');
+                    if (!summaryRow) return;
 
-                const detailId = summaryRow.getAttribute('data-detail-id');
-                const detailEl = document.getElementById(detailId);
-                if (!detailEl) return;
+                    const detailId = summaryRow.getAttribute('data-detail-id');
+                    const detailEl = document.getElementById(detailId);
+                    if (!detailEl) return;
 
-                const isOpen = summaryRow.classList.contains('rdm-expanded');
+                    const isOpen = summaryRow.classList.contains('rdm-expanded');
 
-                if (isOpen) {
-                    // -- Collapse this row -----------------------------------
-                    collapseEntry({rowEl: summaryRow, detailEl});
-                    // Remove from queue
-                    const qIdx = expandedQueue.findIndex(e => e.rowEl === summaryRow);
-                    if (qIdx !== -1) expandedQueue.splice(qIdx, 1);
-                } else {
-                    // -- Expand this row (enforce max 2) ---------------------
-                    if (expandedQueue.length >= 2) {
-                        // Close the OLDEST (first in queue)
-                        const oldest = expandedQueue.shift();
-                        collapseEntry(oldest);
+                    if (isOpen) {
+                        collapseEntry({rowEl: summaryRow, detailEl});
+                        const qIdx = expandedQueue.findIndex(e => e.rowEl === summaryRow);
+                        if (qIdx !== -1) expandedQueue.splice(qIdx, 1);
+                    } else {
+                        if (expandedQueue.length >= 2) {
+                            const oldest = expandedQueue.shift();
+                            collapseEntry(oldest);
+                        }
+                        const entry = {rowEl: summaryRow, detailEl};
+                        expandedQueue.push(entry);
+                        expandEntry(entry);
                     }
-                    const entry = {rowEl: summaryRow, detailEl};
-                    expandedQueue.push(entry);
-                    expandEntry(entry);
-                }
+                });
             });
 
-            // -- Sortable column headers --------------------------------------
-            const thead = tbody.closest('table')?.querySelector('thead');
-            if (thead) {
+            // -- Sortable column headers (per-group table) --------------------
+            // Build a map from tbody index to its subset of trader rows
+            const tbodyGroupMap = new Map();
+            let gIdx = 0;
+            for (const [, rows] of qtSideGroups) {
+                tbodyGroupMap.set(String(gIdx++), rows);
+            }
+
+            allTbodies.forEach(tbody => {
+                const thead = tbody.closest('table')?.querySelector('thead');
+                if (!thead) return;
+                const tIdx = tbody.getAttribute('data-tbody-idx');
+                const groupRows = tbodyGroupMap.get(tIdx) || [];
+
                 let sortKey = null;
                 let sortAsc = true;
-
                 const SORT_ASC = ' ▲';
                 const SORT_DESC = ' ▼';
 
@@ -1092,7 +1122,7 @@ export class PivotWidget extends BaseWidget {
                     }
 
                     const dir = sortAsc ? 1 : -1;
-                    const sorted = [...trader].sort((a, b) => {
+                    const sorted = [...groupRows].sort((a, b) => {
                         const av = a[key];
                         const bv = b[key];
                         if (av == null && bv == null) return 0;
@@ -1108,7 +1138,7 @@ export class PivotWidget extends BaseWidget {
                     tbody.innerHTML = buildTraderRows(sorted);
                     updateHeaderIndicators();
                 });
-            }
+            });
 
             // -- Bucket-level Apply buttons ---------------------------------------
             document.querySelectorAll('.rdm-bucket-apply-btn').forEach(btn => {
@@ -1283,14 +1313,26 @@ export class PivotWidget extends BaseWidget {
         const modalManager = this.context.page.modalManager();
         this.context.page.addEventListener(this.topLock, 'click', async () => {
 
+            // -- SessionStorage helpers for solver config persistence --------
+            const SCFG_STORAGE_KEY = 'pt:solverConfig';
+            const _readScfgCache = () => {
+                try { return JSON.parse(sessionStorage.getItem(SCFG_STORAGE_KEY)) || {}; } catch { return {}; }
+            };
+            const _writeScfgCache = (obj) => {
+                try { sessionStorage.setItem(SCFG_STORAGE_KEY, JSON.stringify(obj)); } catch {}
+            };
+            const cached = _readScfgCache();
+
             // -- Solver-options state (lives across the modal lifecycle) ------
             const opts = {
                 linear: false,
-                isolate_traders: false,
-                max_individual_spread_skew_delta: null,
-                max_individual_px_skew_delta: null,
-                match_pivot_groups: false,
-                group_columns: null,
+                isolate_traders: cached.isolate_traders ?? false,
+                max_individual_spread_skew_delta: cached.max_individual_spread_skew_delta ?? null,
+                max_individual_px_skew_delta: cached.max_individual_px_skew_delta ?? null,
+                match_pivot_groups: cached.match_pivot_groups ?? false,
+                group_columns: cached.group_columns ?? null,
+                target_blend: cached.target_blend ?? null,
+                allow_through_mid: cached.allow_through_mid ?? true,
             };
 
             // -- Config panel HTML -------------------------------------------
@@ -1310,21 +1352,21 @@ export class PivotWidget extends BaseWidget {
         <div class="scfg-section">
             <div class="scfg-toggle-row">
                 <label class="scfg-toggle-row-wrapper">
-                    <input type="checkbox" id="scfg-isolate" />
+                    <input type="checkbox" id="scfg-isolate" ${opts.isolate_traders ? 'checked' : ''}/>
                     <span for="scfg-isolate">Isolate by group</span>
                 </label>
                 <span class="scfg-tag">experimental</span>
             </div>
             <div class="scfg-toggle-row">
                 <label class="scfg-toggle-row-wrapper">
-                    <input type="checkbox" id="scfg-crossing" checked/>
+                    <input type="checkbox" id="scfg-crossing" ${opts.allow_through_mid !== false ? 'checked' : ''}/>
                     <span for="scfg-crossing">Allow Crossing Mids</span>
                 </label>
                 <span class="scfg-tag">Recommended</span>
             </div>
             <div class="scfg-toggle-row">
                 <label class="scfg-toggle-row-wrapper">
-                    <input type="checkbox" id="scfg-match-pivot-groups" />
+                    <input type="checkbox" id="scfg-match-pivot-groups" ${opts.match_pivot_groups ? 'checked' : ''}/>
                     <span for="scfg-match-pivot-groups">Match Pivot Groups</span>
                 </label>
                 <span class="scfg-tag">group buckets</span>
@@ -1337,13 +1379,13 @@ export class PivotWidget extends BaseWidget {
         <div class="scfg-section">
             <div class="scfg-section-label">Skew Constraints <span style="font-weight:400;opacity:0.55;text-transform:none;letter-spacing:0;">&mdash; leave blank for uncapped</span></div>
             <div class="scfg-fields">
-                <div class="scfg-field scfg-faded" data-field="max_individual_spread_skew_delta">
+                <div class="scfg-field ${opts.max_individual_spread_skew_delta != null ? '' : 'scfg-faded'}" data-field="max_individual_spread_skew_delta">
                     <label>Max individual SPD skew <span class="scfg-unit">bps</span></label>
-                    <input type="number" id="scfg-max-ind-spd" step="any" placeholder="—" />
+                    <input type="number" id="scfg-max-ind-spd" step="any" placeholder="—" ${opts.max_individual_spread_skew_delta != null ? `value="${opts.max_individual_spread_skew_delta}"` : ''}/>
                 </div>
-                <div class="scfg-field scfg-faded" data-field="max_individual_px_skew_delta">
+                <div class="scfg-field ${opts.max_individual_px_skew_delta != null ? '' : 'scfg-faded'}" data-field="max_individual_px_skew_delta">
                     <label>Max individual PX skew <span class="scfg-unit">pts</span></label>
-                    <input type="number" id="scfg-max-ind-px" step="any" placeholder="—" />
+                    <input type="number" id="scfg-max-ind-px" step="any" placeholder="—" ${opts.max_individual_px_skew_delta != null ? `value="${opts.max_individual_px_skew_delta}"` : ''}/>
                 </div>
             </div>
         </div>
@@ -1356,7 +1398,7 @@ export class PivotWidget extends BaseWidget {
                 <p class="scfr-range-sub-title">Controls how aggressively the optimizer redistributes proceeds across traders from starting allocation.</p>
             </div>
             <div class="scfg-range-wrapper">
-                <input type="range" min="0" max="100" value="50" step="5" id="target_blend" class="range range-xs target_blend-range">
+                <input type="range" min="0" max="100" value="${opts.target_blend != null ? Math.round(opts.target_blend * 100) : 50}" step="5" id="target_blend" class="range range-xs target_blend-range">
                 <div class="scfg-range-wrapper-dividers">
                 <span>|</span>
                     <span class="sub-dash">¦</span>
@@ -1502,20 +1544,31 @@ export class PivotWidget extends BaseWidget {
                     input.addEventListener('change', sync);
                 }
 
-                // Solver parameters microgrid button
-                // const paramsBtn = document.getElementById('scfg-open-params');
-                // if (paramsBtn) {
-                //     paramsBtn.addEventListener('click', () => {
-                //         const mgr = this.context.page._microGridManager;
-                //         if (mgr) {
-                //             mgr.openGroup({
-                //                 name: 'redist_params',
-                //                 displayName: 'Solver Config',
-                //                 grids: ['redist_params'],
-                //             });
-                //         }
-                //     });
-                // }
+                // Target blend slider
+                const blendEl = document.getElementById('target_blend');
+                if (blendEl) {
+                    const syncBlend = () => {
+                        const v = Number(blendEl.value) / 100;
+                        opts.target_blend = v;
+                        _writeScfgCache(opts);
+                    };
+                    blendEl.addEventListener('input', syncBlend);
+                    blendEl.addEventListener('change', syncBlend);
+                }
+
+                // Persist all option changes to sessionStorage
+                const _persistOnChange = () => _writeScfgCache(opts);
+
+                if (isolateEl) isolateEl.addEventListener('change', _persistOnChange);
+                if (crossingEl) crossingEl.addEventListener('change', _persistOnChange);
+                if (matchPivotEl) matchPivotEl.addEventListener('change', _persistOnChange);
+                for (const [elId] of fieldPairs) {
+                    const input = document.getElementById(elId);
+                    if (input) {
+                        input.addEventListener('input', _persistOnChange);
+                        input.addEventListener('change', _persistOnChange);
+                    }
+                }
             });
 
             const confirmResult = await modalPromise;

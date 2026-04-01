@@ -1624,6 +1624,67 @@ table.redist-summary-table tbody td:nth-child(2).td-buy {
     --rdm-row-hover: rgba(96, 165, 250, 0.06);
 }
 
+/* ─── Per-group section wrapper ─── */
+.rdm-group-section {
+    margin-bottom: 10px;
+}
+
+.rdm-group-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 4px 8px 2px;
+    color: var(--rdm-header-color);
+    border-radius: 4px 4px 0 0;
+}
+
+/* ─── PX theme (orange) ─── */
+.rdm-theme-px {
+    --rdm-bg: var(--orange-700, #c2410c);
+    --rdm-border: var(--orange-600, #ea580c);
+    --rdm-border-subtle: color-mix(in srgb, var(--orange-800, #9a3412) 30%, transparent);
+}
+.rdm-theme-px .rdm-group-label {
+    background: var(--orange-700, #c2410c);
+}
+.rdm-theme-px .rdm-summary-table thead th {
+    background: var(--orange-700, #c2410c);
+    border-bottom-color: var(--orange-600, #ea580c);
+}
+.rdm-theme-px .rdm-summary-row:nth-child(odd) {
+    background-color: var(--white-200);
+}
+.rdm-theme-px .rdm-summary-row:hover {
+    outline-color: color-mix(in srgb, var(--orange-500, #f97316) 70%, transparent);
+}
+.rdm-theme-px .rdm-summary-row.rdm-expanded {
+    background-color: color-mix(in srgb, var(--orange-200, #fed7aa) 50%, var(--purple-200)) !important;
+}
+
+/* ─── SPD theme (teal) ─── */
+.rdm-theme-spd {
+    --rdm-bg: var(--teal-700);
+    --rdm-border: var(--teal-600);
+    --rdm-border-subtle: color-mix(in srgb, var(--teal-800) 30%, transparent);
+}
+.rdm-theme-spd .rdm-group-label {
+    background: var(--teal-700);
+}
+.rdm-theme-spd .rdm-summary-table thead th {
+    background: var(--teal-700);
+    border-bottom-color: var(--teal-600);
+}
+.rdm-theme-spd .rdm-summary-row:nth-child(odd) {
+    background-color: var(--white-200);
+}
+.rdm-theme-spd .rdm-summary-row:hover {
+    outline-color: color-mix(in srgb, var(--teal-500) 70%, transparent);
+}
+.rdm-theme-spd .rdm-summary-row.rdm-expanded {
+    background-color: color-mix(in srgb, var(--teal-200) 50%, var(--purple-200)) !important;
+}
+
 .rdm-style-root * {
     box-sizing: border-box;
 }
@@ -1635,8 +1696,30 @@ table.redist-summary-table tbody td:nth-child(2).td-buy {
     border-radius: 4px;
     --success: var(--sea-green-500);
     --danger: var(--red-500);
-    table-layout: fixed;
+    table-layout: auto;
     position: relative;
+}
+
+/* First 4 columns: left-aligned (chevron, group/trader, side, QT) */
+.rdm-summary-table th:nth-child(-n+4),
+.rdm-summary-table td:nth-child(-n+4) {
+    text-align: left !important;
+}
+
+/* All remaining columns: right-aligned */
+.rdm-summary-table th:nth-child(n+5),
+.rdm-summary-table td:nth-child(n+5) {
+    text-align: right !important;
+}
+
+/* Group/Trader name column — allow wider to avoid trimming */
+.rdm-summary-table th:nth-child(2),
+.rdm-summary-table td:nth-child(2) {
+    min-width: 120px;
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .rdm-table-wrapper {
@@ -1650,6 +1733,10 @@ table.redist-summary-table tbody td:nth-child(2).td-buy {
     border-bottom:2px solid var(--rdm-border);
     color: var(--rdm-header-color, white); position:sticky; top:0;
     background: var(--rdm-bg);
+    text-align: right;
+}
+.rdm-summary-table thead th:nth-child(-n+4) {
+    text-align: left;
 }
 .rdm-summary-table thead th[data-tip]::after {
     content: ''; display:inline-block; width:0; height:0;
@@ -1664,9 +1751,7 @@ table.redist-summary-table tbody td:nth-child(2).td-buy {
     margin-top:1px;
 }
 
-#rdm-tbody {
-    height: 100px;
-    max-height: 100px;
+.rdm-tbody {
     overflow: hidden;
 }
 
@@ -1679,9 +1764,7 @@ table.redist-summary-table tbody td:nth-child(2).td-buy {
     border-bottom: 1px solid var(--rdm-border-subtle);
 }
 
-.rdm-summary-row.rdm-expanded {
-    background-color: color-mix(var(--teal-200) 50%, var(--purple-200)) !important;
-}
+/* Expanded row bg is now set per-theme (.rdm-theme-px / .rdm-theme-spd) */
 
 .rdm-summary-row:hover {
     cursor: pointer;
@@ -1710,32 +1793,7 @@ table.redist-summary-table tbody td:nth-child(2).td-buy {
 /* ─── Detail expansion wrapper ─── */
 
 
-tr.rdm-summary-row:nth-child(1),
-tr.rdm-summary-row:nth-child(5),
-tr.rdm-summary-row:nth-child(9),
-tr.rdm-summary-row:nth-child(13),
-tr.rdm-summary-row:nth-child(17),
-tr.rdm-summary-row:nth-child(21),
-tr.rdm-summary-row:nth-child(25) {
-    background-color: var(--white-200);
-}
-
-tr.rdm-summary-row:nth-child(3),
-tr.rdm-summary-row:nth-child(7),
-tr.rdm-summary-row:nth-child(11),
-tr.rdm-summary-row:nth-child(15),
-tr.rdm-summary-row:nth-child(19),
-tr.rdm-summary-row:nth-child(23),
-tr.rdm-summary-row:nth-child(27),
-tr.rdm-summary-row:nth-child(31),
-tr.rdm-summary-row:nth-child(35),
-tr.rdm-summary-row:nth-child(39),
-tr.rdm-summary-row:nth-child(43),
-tr.rdm-summary-row:nth-child(47),
-tr.rdm-summary-row:nth-child(51),
-tr.rdm-summary-row:nth-child(55){
-    background-color: var(--teal-200);
-}
+/* Alternating row stripes are now handled by the theme classes (.rdm-theme-px / .rdm-theme-spd) */
 
 
 .rdm-detail-wrapper-tr {
@@ -1800,6 +1858,12 @@ tr.rdm-summary-row:nth-child(55){
     white-space:nowrap;
 }
 
+/* Bond table: first column left-aligned, all others right-aligned */
+.rdm-bond-table thead th,
+.rdm-bond-table tbody td {
+    text-align: right;
+}
+
 .rdm-bond-table tbody td:first-child,
 .rdm-bond-table thead th:first-child {
     text-align:left !important;
@@ -1842,22 +1906,12 @@ table.rdm-bond-table thead th:nth-child(11){
 
 .rdm-summary-table thead th:nth-child(10),
 .rdm-summary-table tbody td:nth-child(10){
-    border-left: 1px solid var(--teal-500);
-}
-
-.rdm-summary-table :not(.rdm-detail-inner) thead th:nth-child(10),
-.rdm-summary-table :not(.rdm-detail-inner) tbody td:nth-child(10){
-    border-left: 0 solid transparent;
+    border-left: 1px solid var(--rdm-border);
 }
 
 .rdm-summary-table thead th:nth-child(14),
 .rdm-summary-table tbody td:nth-child(14){
-    border-left: 1px solid var(--teal-500);
-}
-
-.rdm-summary-table :not(.rdm-detail-inner) thead th:nth-child(14),
-.rdm-summary-table :not(.rdm-detail-inner) tbody td:nth-child(14){
-    border-left: 0 solid transparent;
+    border-left: 1px solid var(--rdm-border);
 }
 
 /*.rdm-summary-table :not(.rdm-detail-inner) th:nth-child(2),*/
@@ -1865,45 +1919,24 @@ table.rdm-bond-table thead th:nth-child(11){
 /*  width: 120px;*/
 /*}*/
 
-.rdm-summary-table thead th:nth-child(10),
-.rdm-summary-table thead th:nth-child(11),
-.rdm-summary-table thead th:nth-child(12),
-.rdm-summary-table thead th:nth-child(13){
-    background:var(--teal-600) !important;
+/* Theme-aware header highlights — SPD (teal) */
+.rdm-theme-spd .rdm-summary-table thead th:nth-child(n+10):nth-child(-n+13) {
+    background: var(--teal-600) !important;
 }
-
-.rdm-summary-table thead th:nth-child(15),
-.rdm-summary-table thead th:nth-child(14){
-    background:var(--teal-500) !important;
+.rdm-theme-spd .rdm-summary-table thead th:nth-child(14),
+.rdm-theme-spd .rdm-summary-table thead th:nth-child(15) {
+    background: var(--teal-500) !important;
     border-color: var(--teal-500) !important;
 }
 
-
-.rdm-summary-table :not(.rdm-detail-inner) thead th:nth-child(7),
-.rdm-summary-table :not(.rdm-detail-inner) thead th:nth-child(8),
-.rdm-summary-table :not(.rdm-detail-inner) thead th:nth-child(9),
-.rdm-summary-table :not(.rdm-detail-inner) thead th:nth-child(10){
-    background:var(--indigo-500) !important;
+/* Theme-aware header highlights — PX (orange) */
+.rdm-theme-px .rdm-summary-table thead th:nth-child(n+10):nth-child(-n+13) {
+    background: var(--orange-600, #ea580c) !important;
 }
-
-.rdm-summary-table :not(.rdm-detail-inner) thead th:nth-child(7),
-.rdm-summary-table :not(.rdm-detail-inner) tbody td:nth-child(7){
-    border-left: 1px solid var(--indigo-400);
-}
-
-.rdm-summary-table :not(.rdm-detail-inner) thead th:nth-child(10),
-.rdm-summary-table :not(.rdm-detail-inner) tbody td:nth-child(10){
-    padding-right: 4px;
-}
-
-.rdm-summary-table :not(.rdm-detail-inner) thead th:nth-child(11),
-.rdm-summary-table :not(.rdm-detail-inner) tbody td:nth-child(11){
-    border-left: 1px solid var(--indigo-400);
-}
-
-.rdm-summary-table :not(.rdm-detail-inner) thead th:nth-child(11),
-.rdm-summary-table :not(.rdm-detail-inner) thead th:last-child {
-    background:var(--indigo-400) !important;
+.rdm-theme-px .rdm-summary-table thead th:nth-child(14),
+.rdm-theme-px .rdm-summary-table thead th:nth-child(15) {
+    background: var(--orange-500, #f97316) !important;
+    border-color: var(--orange-500, #f97316) !important;
 }
 
 .rdm-summary-table td:nth-child(11),
@@ -2266,6 +2299,11 @@ table.rdm-bond-table thead th:nth-child(11){
     justify-content: flex-end;
 }
 
+/* Tip text in left-aligned columns should follow left alignment */
+th:nth-child(-n+4) .rdm-header-wrapper {
+    justify-content: flex-start;
+}
+
 .rdm-bucket-apply-btn {
     margin-left:6px;
     padding:1px 8px;
@@ -2288,5 +2326,6 @@ table.rdm-bond-table thead th:nth-child(11){
 
 .fmtk-wrapper {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
+    gap: 2px;
 }
