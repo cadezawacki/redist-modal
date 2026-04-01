@@ -892,9 +892,11 @@ export class PivotWidget extends BaseWidget {
 
 
         // -- Build trader body rows with paired detail expansion rows ---------
+        let _globalRowIdx = 0;  // unique across all groups
         const buildTraderRows = (trader) => {
             let bodyRowsHtml = '';
-            trader.forEach((row, idx) => {
+            trader.forEach((row, localIdx) => {
+                const idx = _globalRowIdx++;
                 const qt = row['quoteType'];
                 const side = row['side'];
                 const groupDisplay = _buildGroupDisplay(row);
@@ -920,7 +922,8 @@ export class PivotWidget extends BaseWidget {
                     return `<td style="${style}" class="td-${qt.toString().toLowerCase()} td-${side.toString().toLowerCase()}">${display}</td>`;
                 }).join('');
 
-                bodyRowsHtml += `<tr id="${rowId}" class="rdm-summary-row" data-detail-id="${detailId}" data-key="${esc(detailKey)}">${cells}</tr>`;
+                const stripeClass = localIdx % 2 === 0 ? 'rdm-stripe-even' : 'rdm-stripe-odd';
+                bodyRowsHtml += `<tr id="${rowId}" class="rdm-summary-row ${stripeClass}" data-detail-id="${detailId}" data-key="${esc(detailKey)}">${cells}</tr>`;
 
                 // Detail expansion row (hidden by default)
                 const colSpan = summaryDisplayCols.length;

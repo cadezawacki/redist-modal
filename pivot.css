@@ -1627,6 +1627,7 @@ table.redist-summary-table tbody td:nth-child(2).td-buy {
 /* ─── Per-group section wrapper ─── */
 .rdm-group-section {
     margin-bottom: 10px;
+    width: 100%;
 }
 
 .rdm-group-label {
@@ -1652,7 +1653,7 @@ table.redist-summary-table tbody td:nth-child(2).td-buy {
     background: var(--orange-700, #c2410c);
     border-bottom-color: var(--orange-600, #ea580c);
 }
-.rdm-theme-px .rdm-summary-row:nth-child(odd) {
+.rdm-theme-px .rdm-summary-row.rdm-stripe-odd {
     background-color: var(--white-200);
 }
 .rdm-theme-px .rdm-summary-row:hover {
@@ -1675,7 +1676,7 @@ table.redist-summary-table tbody td:nth-child(2).td-buy {
     background: var(--teal-700);
     border-bottom-color: var(--teal-600);
 }
-.rdm-theme-spd .rdm-summary-row:nth-child(odd) {
+.rdm-theme-spd .rdm-summary-row.rdm-stripe-odd {
     background-color: var(--white-200);
 }
 .rdm-theme-spd .rdm-summary-row:hover {
@@ -1696,7 +1697,7 @@ table.redist-summary-table tbody td:nth-child(2).td-buy {
     border-radius: 4px;
     --success: var(--sea-green-500);
     --danger: var(--red-500);
-    table-layout: auto;
+    table-layout: fixed;
     position: relative;
 }
 
